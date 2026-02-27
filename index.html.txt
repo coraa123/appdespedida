@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Qué prefieres? 💍</title>
+  <style>
+    body{margin:0;font-family:system-ui,Segoe UI,Arial;background:linear-gradient(135deg,#ffe4ec,#fff0f6,#ffe4ec);min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .card{background:#fff;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.1);padding:24px;max-width:600px;width:92%}
+    h1,h2{color:#e11d48;text-align:center}
+    .btn{border:none;border-radius:999px;padding:12px 16px;margin:6px;cursor:pointer;font-weight:600}
+    .primary{background:#f43f5e;color:#fff}
+    .outline{background:#fff;border:2px solid #fda4af;color:#be123c}
+    .q{margin:14px 0;padding:14px;border-radius:14px;background:#fff1f2}
+    input{width:100%;padding:12px;border-radius:10px;border:1px solid #fda4af;margin-bottom:12px}
+    .center{text-align:center}
+    .hidden{display:none}
+    .confetti{position:fixed;inset:0;pointer-events:none}
+  </style>
+</head>
+<body>
+  <div class="card" id="home">
+    <h1>💍 ¿Qué prefieres?</h1>
+    <input id="code" placeholder="Código secreto (ej: ANA2026)"/>
+    <div class="center">
+      <button class="btn primary" onclick="start('A')">Responder Prometido</button>
+      <button class="btn primary" onclick="start('B')">Responder Novia</button>
+      <button class="btn outline" onclick="go('compare')">Ver compatibilidad</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="questions"></div>
+
+  <div class="card hidden" id="saved">
+    <h2>✅ Respuestas guardadas</h2>
+    <p class="center">Puedes cerrar esta página 💗</p>
+    <div class="center"><button class="btn primary" onclick="go('home')">Volver</button></div>
+  </div>
+
+  <div class="card hidden" id="compare">
+    <h2>Calcular compatibilidad</h2>
+    <input id="code2" placeholder="Código"/>
+    <div class="center"><button class="btn primary" onclick="compare()">Calcular</button></div>
+  </div>
+
+  <div class="card hidden" id="result">
+    <h2 id="resText"></h2>
+    <div class="center"><button class="btn primary" onclick="go('home')">Reiniciar</button></div>
+  </div>
+
+<script>
+const questions=[
+{q:"Piso muy pequeño en el centro o casa muy grande en las afueras",a:"Piso pequeño en el centro",b:"Casa grande en las afueras"},
+{q:"Tener tres hijos y una cabra gritona y saltarina o diez hijos?",a:"Tres hijos + cabra",b:"Diez hijos"},
+{q:"Tener tres therians o diez hijos normales?",a:"Tres therians",b:"Diez hijos normales"},
+{q:"Tener una serpiente o una rata de laboratorio de mascota?",a:"Serpiente",b:"Rata"},
+{q:"Que le huelan los pies o el sobaco?",a:"Pies",b:"Sobaco"},
+{q:"Que ronque o que te pegue patadas mientras duermes?",a:"Que ronque",b:"Patadas"},
+{q:"Que cocine fatal o que no le guste lo que tú cocinas?",a:"Cocine fatal",b:"No le guste tu comida"},
+{q:"Que le crezcan orejas de duende o dientes de conejo?",a:"Orejas de duende",b:"Dientes de conejo"},
+{q:"Que al reír se le salgan los mocos o se tire peos?",a:"Mocos",b:"Peos"},
+{q:"Siempre frío o siempre caliente?",a:"Siempre frío",b:"Siempre caliente"},
+{q:"Que se coma los mocos o las uñas de los pies?",a:"Mocos",b:"Uñas de los pies"}
+];
+let role="";
+function go(id){document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));document.getElementById(id).classList.remove('hidden')}
+function start(r){const code=document.getElementById('code').value.trim();if(!code)return alert('Pon un código');role=r;const wrap=document.getElementById('questions');wrap.innerHTML='<h2>Responde 💗</h2>';
+questions.forEach((it,i)=>{
+ const d=document.createElement('div');d.className='q';
+ d.innerHTML=`<p><b>${it.q}</b></p>
+ <button class='btn outline' onclick="ans(${i},'A')">${it.a}</button>
+ <button class='btn outline' onclick="ans(${i},'B')">${it.b}</button>`;
+ wrap.appendChild(d);
+});
+wrap.innerHTML+=`<div class='center'><button class='btn primary' onclick='save()'>Guardar</button></div>`;
+go('questions');}
+function ans(i,v){window._ans=window._ans||{};_ans[i]=v}
+function save(){const code=document.getElementById('code').value.trim();localStorage.setItem(`qp-${code}-${role}`,JSON.stringify(window._ans||{}));go('saved')}
+function compare(){const code=document.getElementById('code2').value.trim();const a=JSON.parse(localStorage.getItem(`qp-${code}-A`)||'{}');const b=JSON.parse(localStorage.getItem(`qp-${code}-B`)||'{}');let m=0;questions.forEach((_,i)=>{if(a[i]&&b[i]&&a[i]===b[i])m++});const pct=Math.round(m/questions.length*100);
+let txt=`💍 Compatibilidad: ${pct}%`;
+if(pct>80)txt+=' — Almas gemelas 💘';else if(pct>50)txt+=' — Promete 😏';else txt+=' — Necesitan terapia de pareja 😂';
+document.getElementById('resText').textContent=txt;confetti();go('result')}
+function confetti(){const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);const ctx=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;let p=Array.from({length:120},()=>({x:Math.random()*c.width,y:-20,vy:2+Math.random()*3}));let t=0;function draw(){ctx.clearRect(0,0,c.width,c.height);p.forEach(o=>{o.y+=o.vy;ctx.fillRect(o.x,o.y,6,10)});t++;if(t<200)requestAnimationFrame(draw);else c.remove()}draw()}
+</script>
+</body>
+</html>
